@@ -182,6 +182,8 @@ data class EntryResult(
     val peakMb: Double = 0.0,
     val thermalBefore: ThermalSnapshot? = null,
     val thermalAfter: ThermalSnapshot? = null,
+    val cpuThermalAfter: ThermalSnapshot? = null,
+    val vulkanThermalBefore: ThermalSnapshot? = null,
     val skippedReason: String? = null,
     val error: String? = null,
 ) {

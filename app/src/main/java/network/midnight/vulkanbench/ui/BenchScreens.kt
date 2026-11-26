@@ -385,14 +385,14 @@ private fun BenchmarkTab(
                         }
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Cooldown pause", color = BenchColors.TextSecondary, fontSize = 12.sp)
+                        Text("Stage cooldown", color = BenchColors.TextSecondary, fontSize = 12.sp)
                         Spacer(Modifier.height(4.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf(0, 5, 15).forEach { c ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            listOf(0, 10, 15, 30).forEach { c ->
                                 FilterChip(
                                     selected = state.cooldownSec == c,
                                     onClick = { if (!state.isRunning) vm.setCooldownSec(c) },
-                                    label = { Text("${c}s", fontSize = 12.sp) },
+                                    label = { Text("${c}s", fontSize = 11.sp) },
                                     colors = chipColors(),
                                 )
                             }

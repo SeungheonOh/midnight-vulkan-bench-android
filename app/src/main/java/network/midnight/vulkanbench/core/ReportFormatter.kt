@@ -57,10 +57,17 @@ object ReportFormatter {
                 false -> "FAIL"
                 null -> "-"
             }
-            val therm = e.thermalAfter?.let { t ->
-                val temp = t.batteryTempC?.let { "${fmt(it.toDouble(), 1)}°C " } ?: ""
-                "$temp${t.thermalStatus}"
-            } ?: "-"
+            val therm = buildString {
+                val cT = e.cpuThermalAfter?.let { t ->
+                    val temp = t.batteryTempC?.let { "${fmt(it.toDouble(), 1)}°C" } ?: ""
+                    "C:$temp/${t.thermalStatus}"
+                }
+                val vT = e.thermalAfter?.let { t ->
+                    val temp = t.batteryTempC?.let { "${fmt(it.toDouble(), 1)}°C" } ?: ""
+                    "V:$temp/${t.thermalStatus}"
+                }
+                append(listOfNotNull(cT, vT).joinToString(" ").ifBlank { "-" })
+            }
             appendLine(
                 "| `${e.entry}` | ${fmtOpt(e.cpuMs)} | ${fmtOpt(e.vulkanColdMs)} | " +
                     "${fmtOpt(e.vulkanWarmMs)} | $spd | $gpuText | $ver | $erase | ${fmt(e.peakMb, 0)} | $therm |"

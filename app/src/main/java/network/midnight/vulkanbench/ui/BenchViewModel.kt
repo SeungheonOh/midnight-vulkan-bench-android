@@ -55,7 +55,7 @@ data class BenchUiState(
     ),
     val backendMode: BackendMode = BackendMode.BOTH,
     val repeats: Int = 2,
-    val cooldownSec: Int = 5,
+    val cooldownSec: Int = 15,
     val ramGuardEnabled: Boolean = true,
     val runSmokeBefore: Boolean = true,
     val isRunning: Boolean = false,
@@ -296,7 +296,7 @@ class BenchViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 val entry = withContext(Dispatchers.Default) {
-                    runSingleEntry(spec, s.backendMode, s.repeats, vulkanInfo.usable)
+                    runSingleEntry(spec, s.backendMode, s.repeats, s.cooldownSec, vulkanInfo.usable)
                 }
                 if (entry == null) {
                     wasCancelled = true
@@ -380,10 +380,25 @@ class BenchViewModel(application: Application) : AndroidViewModel(application) {
 
     fun fileFor(report: BenchmarkReport): File? = repo.fileFor(report)
 
+    private fun waitCooldown(seconds: Int, label: String): Boolean {
+        if (seconds <= 0) return true
+        for (rem in seconds downTo 1) {
+            if (cancelRequested.get()) return false
+            _state.update { it.copy(currentStage = "$label ${rem}s") }
+            try {
+                Thread.sleep(1000L)
+            } catch (_: InterruptedException) {
+                return false
+            }
+        }
+        return !cancelRequested.get()
+    }
+
     private fun runSingleEntry(
         spec: BenchSpec,
         mode: BackendMode,
         repeats: Int,
+        cooldownSec: Int,
         vulkanUsable: Boolean,
     ): EntryResult? {
         val thermBefore = DeviceCollector.thermalSnapshot(ctx)
@@ -413,9 +428,16 @@ class BenchViewModel(application: Application) : AndroidViewModel(application) {
         var peakBytes = prep.optLong("peak_footprint_bytes", 0L)
         var allVerified = true
         var cpuMs: Double? = null
+        var cpuThermAfter: ThermalSnapshot? = null
+        var vkThermBefore: ThermalSnapshot? = null
         var eraseOk: Boolean? = null
         val vkTimes = mutableListOf<Double>()
         var lastGpu: GpuBreakdown? = null
+
+        // Cool down after heavy SRS/keygen (>2s) so proving starts at matched thermals.
+        if (prepareMs >= 2000.0 && !waitCooldown(cooldownSec, "post-prepare cooldown")) {
+            return null
+        }
 
         // 2. CPU run
         if (mode == BackendMode.BOTH || mode == BackendMode.CPU_ONLY) {
@@ -444,15 +466,22 @@ class BenchViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
             cpuMs = cpuObj.optDouble("prove_ms")
+            cpuThermAfter = DeviceCollector.thermalSnapshot(ctx)
             allVerified = allVerified && cpuObj.optBoolean("verified", false)
             peakBytes = maxOf(
                 peakBytes,
                 cpuObj.optJSONObject("memory")?.optLong("prove_peak_footprint_bytes", 0L) ?: 0L,
             )
+
+            // Cool down between CPU and Vulkan so CPU heat doesn't penalize Vulkan.
+            if (mode == BackendMode.BOTH && vulkanUsable && !waitCooldown(cooldownSec, "pre-vulkan cooldown")) {
+                return null
+            }
         }
 
         // 3. Vulkan runs (1..repeats)
         if ((mode == BackendMode.BOTH || mode == BackendMode.VULKAN_ONLY) && vulkanUsable) {
+            vkThermBefore = DeviceCollector.thermalSnapshot(ctx)
             for (iter in 1..repeats) {
                 if (cancelRequested.get()) return null
                 _state.update { it.copy(currentStage = "vulkan #$iter/$repeats") }
@@ -543,6 +572,8 @@ class BenchViewModel(application: Application) : AndroidViewModel(application) {
             peakMb = peakBytes / (1024.0 * 1024.0),
             thermalBefore = thermBefore,
             thermalAfter = DeviceCollector.thermalSnapshot(ctx),
+            cpuThermalAfter = cpuThermAfter,
+            vulkanThermalBefore = vkThermBefore,
         )
     }
 }
