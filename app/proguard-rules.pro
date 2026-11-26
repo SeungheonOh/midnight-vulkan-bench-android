@@ -1,0 +1,2 @@
+-keep class network.midnight.vulkanbench.core.NativeBridge { *; }
+-keep interface network.midnight.vulkanbench.core.ProgressListener { *; }
