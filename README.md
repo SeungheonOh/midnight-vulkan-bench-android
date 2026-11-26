@@ -41,20 +41,20 @@ A standalone, distributable Android APK for benchmarking the `midnight-vulkan` G
 Output APK and SHA-256 checksum are written to:
 
 ```text
-dist/midnight-vulkan-bench-v0.1.0-arm64-v8a.apk
-dist/midnight-vulkan-bench-v0.1.0-arm64-v8a.apk.sha256
+dist/midnight-vulkan-bench-v0.2.0-arm64-v8a.apk
+dist/midnight-vulkan-bench-v0.2.0-arm64-v8a.apk.sha256
 ```
 
 To sign with your own release keystore, set `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD` before running `./scripts/build-apk.sh`. Otherwise a local self-signed keystore is generated in `signing/` (gitignored) so the APK can be sideloaded directly on any Android 10+ (`arm64-v8a`) phone.
 
 ## Sideloading on Any Android Phone
 
-- **Direct install**: transfer `dist/midnight-vulkan-bench-v0.1.0-arm64-v8a.apk` to the phone and tap to install (enable *Install unknown apps* if prompted).
+- **Direct install**: transfer `dist/midnight-vulkan-bench-v0.2.0-arm64-v8a.apk` to the phone and tap to install (enable *Install unknown apps* if prompted).
 - **Via ADB**:
   ```bash
-  adb install -r dist/midnight-vulkan-bench-v0.1.0-arm64-v8a.apk
+  adb install -r dist/midnight-vulkan-bench-v0.2.0-arm64-v8a.apk
   ```
 
 ## Prover Source
 
-Pinned in `core/Cargo.toml` to `https://github.com/SeungheonOh/midnight-zk.git` (`rev = d5ff7ea6ba5f6a6c16c3a5396d5103c1eb8e888f`, PR #2 `vulkan-prover`).
+Pinned in `core/Cargo.toml` to `https://github.com/SeungheonOh/midnight-zk.git` (`rev = 15a9734fad6a97112b2fc2c4dd4788c698b1b609`, PR #2 `vulkan-prover`, including Android Vulkan 1.1+ compute support).

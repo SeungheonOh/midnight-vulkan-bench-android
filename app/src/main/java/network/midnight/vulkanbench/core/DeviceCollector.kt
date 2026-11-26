@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
+import java.io.File
 import network.midnight.vulkanbench.BuildConfig
 import org.json.JSONObject
 
@@ -56,7 +57,26 @@ object DeviceCollector {
             batteryTempC = tempC,
             thermalStatus = label,
             thermalStatusCode = code,
+            cpuCapPct = readCpuCapPct(),
         )
+    }
+
+    private fun readCpuCapPct(): Int? {
+        var curSum = 0L
+        var maxSum = 0L
+        for (i in 0 until 64) {
+            val maxF = runCatching {
+                File("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq").readText().trim().toLong()
+            }.getOrNull() ?: continue
+            if (maxF <= 0L) continue
+            val curF = runCatching {
+                File("/sys/devices/system/cpu/cpu$i/cpufreq/scaling_max_freq").readText().trim().toLong()
+            }.getOrNull() ?: continue
+            maxSum += maxF
+            curSum += minOf(curF, maxF)
+        }
+        if (maxSum <= 0L) return null
+        return ((curSum * 100L) / maxSum).toInt().coerceIn(1, 100)
     }
 
     fun parseVulkanInfo(jsonStr: String): VulkanDeviceInfo {

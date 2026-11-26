@@ -92,6 +92,7 @@ data class ThermalSnapshot(
     val batteryTempC: Float?,
     val thermalStatus: String,
     val thermalStatusCode: Int,
+    val cpuCapPct: Int? = null,
 )
 
 @Serializable
