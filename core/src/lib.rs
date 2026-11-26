@@ -142,7 +142,7 @@ pub fn device_info() -> Value {
         "cpu_cluster_max_khz": cpu_cluster_max_khz(),
         "memory": memory::snapshot(),
         "prover_rev": option_env!("MIDNIGHT_BENCH_PROVER_REV")
-            .unwrap_or("d5ff7ea6ba5f6a6c16c3a5396d5103c1eb8e888f"),
+            .unwrap_or("4e31451de322882d75776ff68fe29c03a9d3e8bc"),
     })
 }
 
