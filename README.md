@@ -57,4 +57,25 @@ To sign with your own release keystore, set `KEYSTORE_PATH`, `KEYSTORE_PASSWORD`
 
 ## Prover Source
 
-Pinned in `core/Cargo.toml` to `https://github.com/SeungheonOh/midnight-zk.git` (`rev = d5ff7ea6ba5f6a6c16c3a5396d5103c1eb8e888f`, PR #2 `vulkan-prover`).
+The draft pins the Android-compatible prover revision in `core/Cargo.toml`.
+With the native core built, install a separate stock-driver debug package with
+`./gradlew -PbenchCompatInstall :app:assembleDebug`. Use the GPU smoke check
+and inspect proof verification and GPU call counts in the saved report.
+
+### Optional app-local Mesa Turnip driver
+
+On Android 11 or newer, an Adreno test build can load Turnip for this app.
+Build the same Rust core as above. Check out the libadrenotools revision in
+`scripts/build-turnip-loader.sh` with its submodule, and extract the pinned
+`DD-Turnip-Emu-v1.0.0.zip` release. Stage the libraries and package the separate
+**Midnight Bench (Turnip)** debug app with `ANDROID_NDK_HOME` set:
+
+```sh
+# Use absolute paths. TURNIP_DRIVER points to the extracted libvulkan_freedreno.so.
+./scripts/build-turnip-loader.sh "$ADRENOTOOLS_CHECKOUT" "$TURNIP_DRIVER" "$TURNIP_STAGE"
+./gradlew -PbenchTurnipInstall="$TURNIP_STAGE" :app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+In the Device tab, confirm that the driver name contains `Mesa` before comparing
+results against the system driver. The benchmark JSON records the active driver.
