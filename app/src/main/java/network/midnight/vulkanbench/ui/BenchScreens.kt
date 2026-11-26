@@ -176,7 +176,7 @@ private fun HeaderBar(state: BenchUiState) {
         gpu == null -> "Probing GPU…"
         gpu.usable -> "${gpu.name ?: "Vulkan GPU"} · ${gpu.variant ?: "?"}"
         gpu.present -> "${gpu.name ?: "GPU"} (not usable)"
-        else -> "No Vulkan 1.3 GPU"
+        else -> "No compatible Vulkan GPU"
     }
     Row(
         modifier = Modifier

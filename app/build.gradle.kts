@@ -17,6 +17,7 @@ android {
         targetSdk = 35
         versionCode = 2
         versionName = "0.1.1"
+        manifestPlaceholders["benchAppLabel"] = "@string/app_name"
 
         ndk {
             abiFilters += "arm64-v8a"
@@ -37,6 +38,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            if (providers.gradleProperty("benchCompatInstall").isPresent) {
+                applicationIdSuffix = ".compat"
+                versionNameSuffix = "-compat"
+                manifestPlaceholders["benchAppLabel"] = "Midnight Bench (Compat)"
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

@@ -132,7 +132,8 @@ pub fn device_info() -> Value {
         "cpu_cores": std::thread::available_parallelism().map(|n| n.get()).ok(),
         "cpu_cluster_max_khz": cpu_cluster_max_khz(),
         "memory": memory::snapshot(),
-        "prover_rev": "d5ff7ea6ba5f6a6c16c3a5396d5103c1eb8e888f",
+        "prover_rev": option_env!("MIDNIGHT_BENCH_PROVER_REV")
+            .unwrap_or("d5ff7ea6ba5f6a6c16c3a5396d5103c1eb8e888f"),
     })
 }
 
