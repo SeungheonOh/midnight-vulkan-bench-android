@@ -27,9 +27,14 @@ pub use engine::Backend;
 /// Initializes runtime settings BEFORE the first Vulkan context or rayon call:
 /// - sets `MIDNIGHT_VULKAN_PIPELINE_CACHE` into the app's cache dir
 /// - optionally forces `MIDNIGHT_VULKAN_ARITH=32` or `64`
+/// - optionally selects a Vulkan loader owned by the app
 /// - configures the global rayon pool with an 8 MiB stack size (Android's
 ///   default thread stack is 1 MiB, which is too small for deep PLONK recursion)
-pub fn init_runtime(pipeline_cache_path: Option<&str>, arith_override: Option<&str>) {
+pub fn init_runtime(
+    pipeline_cache_path: Option<&str>,
+    arith_override: Option<&str>,
+    vulkan_loader_path: Option<&str>,
+) {
     static INIT: Once = Once::new();
     INIT.call_once(|| {
         if let Some(p) = pipeline_cache_path.filter(|s| !s.is_empty()) {
@@ -39,6 +44,10 @@ pub fn init_runtime(pipeline_cache_path: Option<&str>, arith_override: Option<&s
         if let Some(a) = arith_override.filter(|s| *s == "32" || *s == "64") {
             // SAFETY: called once at app startup before spawning worker threads.
             unsafe { std::env::set_var("MIDNIGHT_VULKAN_ARITH", a) };
+        }
+        if let Some(path) = vulkan_loader_path.filter(|s| !s.is_empty()) {
+            // SAFETY: called once at app startup before spawning worker threads.
+            unsafe { std::env::set_var(vulkan::device::LOADER_ENV, path) };
         }
         let _ = rayon::ThreadPoolBuilder::new()
             .stack_size(8 * 1024 * 1024)

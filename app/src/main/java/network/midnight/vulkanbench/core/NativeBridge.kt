@@ -9,7 +9,7 @@ object NativeBridge {
         System.loadLibrary("midnight_bench_core")
     }
 
-    external fun init(pipelineCachePath: String?, arithOverride: String?)
+    external fun init(pipelineCachePath: String?, arithOverride: String?, vulkanLoaderPath: String?)
     external fun call(requestJson: String): String
     external fun cancel()
     external fun setProgressListener(listener: ProgressListener?)

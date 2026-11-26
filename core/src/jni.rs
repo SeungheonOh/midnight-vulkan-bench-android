@@ -48,6 +48,7 @@ pub extern "system" fn Java_network_midnight_vulkanbench_core_NativeBridge_init<
     _class: JClass<'local>,
     pipeline_cache_path: JString<'local>,
     arith_override: JString<'local>,
+    vulkan_loader_path: JString<'local>,
 ) {
     let cache = if pipeline_cache_path.is_null() {
         None
@@ -59,7 +60,12 @@ pub extern "system" fn Java_network_midnight_vulkanbench_core_NativeBridge_init<
     } else {
         env.get_string(&arith_override).ok().map(String::from)
     };
-    crate::init_runtime(cache.as_deref(), arith.as_deref());
+    let loader = if vulkan_loader_path.is_null() {
+        None
+    } else {
+        env.get_string(&vulkan_loader_path).ok().map(String::from)
+    };
+    crate::init_runtime(cache.as_deref(), arith.as_deref(), loader.as_deref());
 }
 
 #[unsafe(no_mangle)]

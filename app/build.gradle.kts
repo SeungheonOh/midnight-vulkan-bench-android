@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val turnipLibraries = providers.gradleProperty("benchTurnipInstall")
+
 android {
     namespace = "network.midnight.vulkanbench"
     compileSdk = 35
@@ -18,6 +20,7 @@ android {
         versionCode = 2
         versionName = "0.1.1"
         manifestPlaceholders["benchAppLabel"] = "@string/app_name"
+        buildConfigField("boolean", "USE_TURNIP", "false")
 
         ndk {
             abiFilters += "arm64-v8a"
@@ -39,7 +42,12 @@ android {
 
     buildTypes {
         debug {
-            if (providers.gradleProperty("benchCompatInstall").isPresent) {
+            if (turnipLibraries.isPresent) {
+                applicationIdSuffix = ".turnip"
+                versionNameSuffix = "-turnip"
+                manifestPlaceholders["benchAppLabel"] = "Midnight Bench (Turnip)"
+                buildConfigField("boolean", "USE_TURNIP", "true")
+            } else if (providers.gradleProperty("benchCompatInstall").isPresent) {
                 applicationIdSuffix = ".compat"
                 versionNameSuffix = "-compat"
                 manifestPlaceholders["benchAppLabel"] = "Midnight Bench (Compat)"
@@ -74,9 +82,16 @@ android {
         buildConfig = true
     }
 
+    turnipLibraries.orNull?.let { directory ->
+        sourceSets.named("debug") {
+            jniLibs.srcDir(directory)
+            assets.srcDir(file(directory).resolve("notices"))
+        }
+    }
+
     packaging {
         jniLibs {
-            useLegacyPackaging = false
+            useLegacyPackaging = turnipLibraries.isPresent
         }
     }
 }
